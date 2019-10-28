@@ -1,0 +1,6 @@
+.ipynb_checkpoints
+sandbox/videos/*/
+sandbox/params/*/
+sandbox/annotations/*/
+sandbox/tools
+.DS_Store

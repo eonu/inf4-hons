@@ -1,0 +1,55 @@
+# IMPORTANT: Make sure the directory is organized according to organize.rb
+
+require 'fileutils'
+
+SPEAKERS = %w[Adam Beve Bonn Bria Dani Ella Esmo Haze Iren Jack Liam Paul Soph]
+
+def make_csvs(speaker, normalized:)
+  Dir.chdir(speaker) do
+    # Create speaker's CSV subdirectory
+    data_path = normalized ? 'Normalized' : 'Original'
+    csv_dir = File.join data_path, 'rov.csv'
+    FileUtils.mkdir csv_dir
+
+    # Convert each speaker's ROV files to CSV
+    Dir.glob File.join(data_path, 'rov', '*.rov') do |rov|
+      csv = File.join csv_dir, "#{File.basename(rov)}.csv"
+      system %{ruby ../rov2csv.rb -t #{rov} #{csv}}
+    end
+  end
+end
+
+def destroy_csvs(speaker, normalized:)
+  path = File.join speaker, (normalized ? 'Normalized' : 'Original')
+  Dir.chdir(path) { FileUtils.rm_r 'rov.csv' }
+end
+
+namespace :make do
+  namespace :original do
+    desc "Convert each speaker's normalized ROV files to CSV"
+    task :csv do
+      SPEAKERS.each {|speaker| make_csvs(speaker, normalized: false)}
+    end
+  end
+  namespace :normalized do
+    desc "Convert each speaker's original ROV files to CSV"
+    task :csv do
+      SPEAKERS.each {|speaker| make_csvs(speaker, normalized: true)}
+    end
+  end
+end
+
+namespace :destroy do
+  namespace :original do
+    desc "Destroy each speaker's CSV files (from normalized ROV)"
+    task :csv do
+      SPEAKERS.each {|speaker| destroy_csvs(speaker, normalized: false)}
+    end
+  end
+  namespace :normalized do
+    desc "Convert each speaker's CSV files (from original ROV)"
+    task :csv do
+      SPEAKERS.each {|speaker| destroy_csvs(speaker, normalized: true)}
+    end
+  end
+end
