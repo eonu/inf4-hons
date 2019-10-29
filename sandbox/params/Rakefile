@@ -2,7 +2,7 @@
 
 require 'fileutils'
 
-SPEAKERS = %w[Adam Beve Bonn Bria Dani Ella Esmo Haze Iren Jack Liam Paul Soph]
+SPEAKERS = Dir.glob('*').select &File.method(:directory?)
 
 def make_csvs(speaker, normalized:)
   Dir.chdir(speaker) do
@@ -25,6 +25,12 @@ def destroy_csvs(speaker, normalized:)
 end
 
 namespace :make do
+  desc "Create all CSV files"
+  task :csv do
+    Rake::Task['make:original:csv'].invoke
+    Rake::Task['make:normalized:csv'].invoke
+  end
+
   namespace :original do
     desc "Convert each speaker's normalized ROV files to CSV"
     task :csv do
@@ -40,6 +46,12 @@ namespace :make do
 end
 
 namespace :destroy do
+  desc "Destroy all CSV files"
+  task :csv do
+    Rake::Task['destroy:original:csv'].invoke
+    Rake::Task['destroy:normalized:csv'].invoke
+  end
+
   namespace :original do
     desc "Destroy each speaker's CSV files (from normalized ROV)"
     task :csv do

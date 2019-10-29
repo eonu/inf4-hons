@@ -1,19 +1,18 @@
 require 'fileutils'
 
-SPEAKERS = %w[Adam Beve Brian Dani Ella Esmo Paul Sophie]
+SPEAKERS = Dir.glob('*').select &File.method(:directory?)
 
 namespace :make do
   desc "Convert each speaker's EAF files to CSV"
   task :csv do
     SPEAKERS.each do |speaker|
       # Create speaker's CSV subdirectory
-      csv_dir = File.join(speaker, 'csv')
+      csv_dir = File.join(speaker, 'eaf.csv')
       FileUtils.mkdir_p csv_dir
 
       # Convert each speaker's EAF files to CSV
       Dir.glob File.join(speaker, 'eaf', '*.eaf') do |eaf|
-        file_name = File.basename(eaf, '.eaf')
-        csv = File.join csv_dir, "#{file_name}.csv"
+        csv = File.join csv_dir, "#{File.basename(eaf)}.csv"
         system %{python2 eaf2csv.py #{eaf} #{csv}}
       end
     end
@@ -24,9 +23,12 @@ namespace :destroy do
   desc "Destroy converted CSV files"
   task :csv do
     SPEAKERS.each do |speaker|
-      Dir.glob File.join(speaker, 'csv', '*.csv') do |csv|
-        FileUtils.rm csv
-      end
+      FileUtils.rm_r File.join(speaker, 'eaf.csv')
     end
+  end
+
+  desc "Destroy .pfsx files"
+  task :pfsx do
+    FileUtils.rm Dir.glob('**/*.pfsx')
   end
 end

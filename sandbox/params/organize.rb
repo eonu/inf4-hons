@@ -1,6 +1,6 @@
 require 'fileutils'
 
-SPEAKERS = %w[Adam Beve Bonn Bria Dani Ella Esmo Haze Iren Jack Liam Paul Soph]
+SPEAKERS = Dir.glob('*').select &File.method(:directory?)
 
 def sort_formats
   formats = %w[axa dof.gz ea132 rov]

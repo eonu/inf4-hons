@@ -2,30 +2,33 @@ require 'csv'
 require 'fileutils'
 
 class ROV2CSV
-  def initialize(rov, csv, translations: false)
+  def initialize(rov, csv, translations: false, meta: false)
     @rov = rov
     @csv = csv.end_with?('.csv') ? csv : "#{csv}.csv"
     @meta = "#@csv.meta"
 
     puts "Exporting ROV data from #@rov to CSV..."
 
-    prepare_csv
+    prepare_csv(meta: meta)
     convert(translations: translations)
 
     puts "Finished converting #{rov}"
     puts "Exported CSV data to: #@csv"
-    puts "Exported ROV metadata to: #@meta"
+    puts "Exported ROV metadata to: #@meta" if meta
+    puts
   end
 
   private
 
-  def prepare_csv
+  def prepare_csv(meta: false)
     # Create the directory if it doesn't exist
     path = File.dirname @csv
     FileUtils.mkdir_p path
 
-    # Create CSV metadata file
-    @meta_file = File.new(@meta, "w")
+    if meta
+      # Create CSV metadata file
+      @meta_file = File.new(@meta, "w")
+    end
   end
 
   def convert(translations: false)
@@ -44,7 +47,7 @@ class ROV2CSV
 
         if in_header
           # If still in header, add the line to the metadata file
-          @meta_file.puts line
+          @meta_file.puts(line) if @meta_file
         else
           next if line == 'END_OF_HEADER'
           # No longer in header section
@@ -56,16 +59,28 @@ class ROV2CSV
       end
 
       # Ensure the metadata file is closed
-      @meta_file.close
+      @meta_file.close if @meta_file
     end
   end
 end
 
-if ARGV.include? '-t'
-  # Include translations
+if ARGV.include?('-m') && ARGV.include?('-t')
   args = ARGV
+  args.delete '-m'
   args.delete '-t'
-  ROV2CSV.new *(args), translations: true
+  ROV2CSV.new *(args), translations: true, meta: true
 else
-  ROV2CSV.new *ARGV
+  if ARGV.include?('-m')
+    # Include metadata
+    args = ARGV
+    args.delete '-m'
+    ROV2CSV.new *(args), meta: true
+  elsif ARGV.include?('-t')
+    # Include translations
+    args = ARGV
+    args.delete '-t'
+    ROV2CSV.new *(args), translations: true
+  else
+    ROV2CSV.new *ARGV
+  end
 end
