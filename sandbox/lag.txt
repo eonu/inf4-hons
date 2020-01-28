@@ -1,0 +1,3 @@
+X : MocapAudio timing [seconds]
+Y : Callnote video timing [seconds]
+D = Y - X
