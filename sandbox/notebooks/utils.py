@@ -1,4 +1,4 @@
-import glob, re, pathlib
+import os, glob, re, pathlib
 import numpy as np, pandas as pd, seaborn as sns, matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sequentia.preprocessing import downsample
@@ -8,6 +8,10 @@ __all__ = ['data_split', 'smart_downsample', 'show_results', 'show_class_counts'
 
 # ggplot style
 plt.style.use('ggplot')
+
+def savefig(save):
+    if save is not None:
+        plt.savefig(os.path.join('../Plots', save))
 
 def data_split(X, y, random_state=None, stratify=False):
     """Generate a 65-20-10 training, validation and test dataset split"""
@@ -41,7 +45,7 @@ def smart_downsample(X, m, method):
         T = len(x)
         n = int((T - T % -m) / m) - 1
         X_down.append(x if n in [0, 1] else downsample(x, n=n, method=method))
-    return X_down[0] if single else X_down
+    return X_down[0] if single else X_down    
 
 def show_results(acc, cm, dataset, labels):
     """Display accuracy and confusion matrix"""
@@ -57,33 +61,42 @@ def show_results(acc, cm, dataset, labels):
     plt.show()
     print('Accuracy: {:.2f}%'.format(acc * 100))
     
-def show_class_counts(y, classes, rotate_xticks=False):
+def show_class_counts(y, classes, xtick_rotation=0, title=None, figsize=(8, 6), save=None):
     """Display class counts for a dataset"""
     xs = [i for i in range(len(classes))]
     counts = [y.count(label) for label in classes]
-    plt.figure(figsize=(8, 5))
-    plt.title('Dataset class counts')
+    if title is not None:
+        title = 'Dataset class counts' if title == 'default' else title
+    plt.figure(figsize=figsize)
+    plt.title(title)
     plt.xlabel('Class')
     plt.ylabel('Count')
     plt.bar(xs, counts, color='green')
-    plt.xticks(xs, classes, rotation=90 if rotate_xticks else 0)
+    tick_align = 'center' if xtick_rotation % 90 == 0 else 'right'
+    plt.xticks(xs, classes, rotation=xtick_rotation, ha=tick_align)
+    plt.tight_layout()
+    savefig(save)
     plt.show()
     
-def show_durations(X, bins=None):
+def show_durations(X, bins=None, title=None, figsize=(8, 6), save=None):
     """Display a histogram of sequence durations"""
     durations = [len(x) for x in X]
-    plt.figure(figsize=(8, 5))
-    plt.title('Histogram of sequence durations')
+    if title is not None:
+        title = 'Histogram of sequence durations' if title == 'default' else title
+    plt.figure(figsize=figsize)
+    plt.title(title)
     plt.xlabel('Duration (frames)')
     plt.ylabel('Count')
     plt.hist(durations, bins=bins)
+    plt.tight_layout()
+    savefig(save)
     plt.show()
     
 def show_accuracy_history(history):
     """Display accuracy history for LSTM training"""
     hist = history.history
     keys = hist.keys()
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(8, 6))
     plt.title('LSTM accuracy history during training')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
@@ -98,7 +111,7 @@ def show_loss_history(history):
     """Display cross entropy loss history for LSTM training"""
     hist = history.history
     keys = hist.keys()
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(8, 6))
     plt.title('LSTM loss history during training')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
@@ -134,9 +147,9 @@ class MoCapParameters(MoCapRecording):
         return df
 
 class MoCapAnnotations(MoCapRecording):
-    def __init__(self, csv, fields):
+    def __init__(self, csv, fields, normalized):
         self.params = MoCapParameters(
-            re.sub('/rov.csv', '/Normalized/rov.csv', 
+            re.sub('/rov.csv', '/Normalized/rov.csv' if normalized else '/Original/rov.csv', 
                    re.sub('eaf.csv', 'rov.csv', 
                           re.sub('annotations', 'params', csv))),
             fields
@@ -167,13 +180,18 @@ class MoCapAnnotations(MoCapRecording):
         return df
     
 class MoCapLoader: 
+    def __init__(self, normalized=False):
+        self.normalized = normalized
+        
     def load(self, fields):
         # File paths to all annotation CSV files
         csvs = glob.glob('../annotations/*/eaf.csv/*.eaf.csv')
 
         # Initialize Annotations object for each eaf.csv annotations file
         # NOTE: Skip the ones I annotated - without a lag measure
-        anns = [MoCapAnnotations(csv, fields) for csv in csvs if all(skip not in csv for skip in ['sophie_04_e', 'sophie_05_i'])]
+        anns = [MoCapAnnotations(csv, fields, self.normalized) for csv in csvs if all(
+            skip not in csv for skip in ['sophie_04_e', 'sophie_05_i']
+        )]
         
         # Combine the parameters dataframes for each Annotations object
         param_df = pd.concat(ann.params.as_df() for ann in anns)
