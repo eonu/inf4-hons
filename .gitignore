@@ -1,7 +1,7 @@
 .ipynb_checkpoints
 __pycache__
-videos/*/
 params/*/
 annotations/*/
 tools
+videos
 .DS_Store
