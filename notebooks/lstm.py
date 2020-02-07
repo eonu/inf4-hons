@@ -1,4 +1,5 @@
 import numpy as np
+from sequentia.preprocessing.transforms import Equalize
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
@@ -12,10 +13,10 @@ class LSTMClassifier:
         self.batch_size = batch_size
         self.classes = classes
         self.optimizer = optimizer
+        self.equalizer = Equalize()
     
     def fit(self, X, y, validation_data=None, verbose=True, return_history=False):
-        self.T = max(len(x) for x in X)
-        X, y = self._transform(X, y)
+        X, y = np.array(self.equalizer.fit_transform(X)), self._one_hot(y)
         
         # N: Number of training examples
         # T: Number of frames (truncated/padded)
@@ -34,7 +35,9 @@ class LSTMClassifier:
         if validation_data is None:
             history = self.model.fit(X, y, epochs=self.epochs, batch_size=self.batch_size, verbose=verbose)
         else:
-            history = self.model.fit(X, y, validation_data=self._transform(*validation_data), 
+            X_val, y_val = validation_data
+            X_val, y_val = np.array(self.equalizer.transform(X_val)), self._one_hot(y_val)
+            history = self.model.fit(X, y, validation_data=(X_val, y_val), 
                 epochs=self.epochs, batch_size=self.batch_size, verbose=verbose)
             
         if return_history:
@@ -42,27 +45,27 @@ class LSTMClassifier:
         
     def predict(self, X, return_scores=False):
         single = isinstance(X, np.ndarray)
-        X = self._transform([X] if single else X)
+        
+        if single:
+            X = np.expand_dims(self.equalizer.transform(X), axis=0)
+        else:
+            X = np.array(self.equalizer.transform(X))
+            
         scores = self.model.predict(X)
         preds = [self.classes[i] for i in np.argmax(scores, axis=1)]
-        output = [(preds[i], scores[i]) for i in range(len(X))] if return_scores else preds
-        return output[0] if single else output
+        
+        if single:
+            return (preds[0], scores[0]) if return_scores else preds[0]
+        else:
+            return [(preds[i], scores[i]) for i in range(len(X))] if return_scores else preds
         
     def evaluate(self, X, y):
-        preds = self.predict(X)
+        assert isinstance(X, list)
+        preds = self.predict(X, return_scores=False)
         cm = confusion_matrix(y, preds, labels=self.classes)
         acc = np.sum(np.diag(cm)) / np.sum(cm)
         return acc, cm
         
-    def _transform(self, X, yy=None):
-        def transform_x(x):
-            # Zero-padding or removal to ensure inputs are all the same length
-            T, D = x.shape
-            return np.vstack((x, np.zeros((self.T - T, D)))) if T <= self.T else x[:self.T]
-        def transform_y(y):
-            # Generate one-hot encodings
-            return to_categorical(self.classes.index(y), num_classes=len(self.classes))
-        if yy is None:
-            return np.array([transform_x(x) for x in X])
-        else:
-            return np.array([transform_x(x) for x in X]), np.array([transform_y(y) for y in yy])
+    def _one_hot(self, y):
+        # Generate one-hot encodings
+        return np.array([to_categorical(self.classes.index(label), num_classes=len(self.classes)) for label in y])

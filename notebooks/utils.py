@@ -1,10 +1,10 @@
 import os, glob, re, pathlib
 import numpy as np, pandas as pd, seaborn as sns, matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
-from sequentia.preprocessing import downsample
+from sequentia.preprocessing import Transform, Downsample
 from tqdm.auto import tqdm
 
-__all__ = ['data_split', 'smart_downsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'MoCapLoader']
+__all__ = ['savefig', 'data_split', 'BinDownsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'MoCapLoader']
 
 # ggplot style
 plt.style.use('ggplot')
@@ -37,15 +37,22 @@ def data_split(X, y, random_state=None, stratify=False):
         
     return X_train, X_val, X_test, y_train, y_val, y_test
 
-def smart_downsample(X, m, method):
-    """Duration-dependent downsampling"""
-    single = isinstance(X, np.ndarray)
-    X, X_down = [X] if single else X, []
-    for x in X:
-        T = len(x)
-        n = int((T - T % -m) / m) - 1
-        X_down.append(x if n in [0, 1] else downsample(x, n=n, method=method))
-    return X_down[0] if single else X_down    
+class BinDownsample(Transform):
+    def __init__(self, bin_size, method='decimate'):
+        super().__init__()
+        self.bin_size = bin_size
+        self.method = self._val.one_of(method, ['decimate', 'mean'], desc='downsampling method')
+
+    def _describe(self):
+        method = 'Decimation' if self.method == 'decimate' else 'Mean'
+        return '{} bin-downsampling with bin-size {}'.format(method, self.bin_size)
+
+    def transform(self, X, verbose=False):
+        def bin_downsample(x):
+            T = len(x)
+            factor = int((T - T % -self.bin_size) / self.bin_size) - 1
+            return x if factor == 0 else Downsample(factor=factor, method=self.method).transform(x)
+        return self._apply(bin_downsample, X, verbose)
 
 def show_results(acc, cm, dataset, labels):
     """Display accuracy and confusion matrix"""
