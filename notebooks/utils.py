@@ -4,14 +4,14 @@ from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sequentia.preprocessing import Transform, Downsample
 from tqdm.auto import tqdm
 
-__all__ = ['savefig', 'data_split', 'BinDownsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'MoCapLoader']
+__all__ = ['data_split', 'BinDownsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'write_knn_results', 'write_hmm_results', 'write_lstm_results', 'MoCapLoader']
 
 # ggplot style
 plt.style.use('ggplot')
 
 def savefig(save):
     if save is not None:
-        plt.savefig(os.path.join('../Plots', save))
+        plt.savefig(os.path.join('Plots', save))
 
 def data_split(X, y, random_state=None, stratify=False):
     """Generate a 65-20-10 training, validation and test dataset split"""
@@ -128,6 +128,41 @@ def show_loss_history(history):
         plt.plot(hist['val_loss'], label='validation')
     plt.legend()
     plt.show()
+    
+def write_knn_results(results, dataset, name, split, number=None, save_cm=False):
+    path = os.path.join('Experiments', dataset, 'knn', name + ' ' + split)
+    if number is not None:
+        path = path + ' ' + str(number)
+    acc, cm = results['knn'][split]
+    with open(path, 'w') as file:
+        file.write(str(acc))
+    if save_cm:
+        np.save(path, cm)
+        
+def write_hmm_results(results, dataset, name, split, number=None, save_cm=False):
+    path = os.path.join('Experiments', dataset, 'hmm', '{} {}'.format(name, split))
+    if number is not None:
+        path = path + ' ' + str(number)
+    acc, cm = results['hmm'][split]
+    with open(path, 'w') as file:
+        file.write(str(acc))
+    if save_cm:
+        np.save(path, cm)
+        
+def write_lstm_results(results, dataset, name, split, history=None, number=None, save_cm=False):
+    path = os.path.join('Experiments', dataset, 'lstm', '{} {}'.format(name, split))
+    if number is not None:
+        path = path + ' ' + str(number)
+    acc, cm = results['lstm'][split]
+    with open(path, 'w') as file:
+        file.write(str(acc))
+    if save_cm:
+        np.save(path, cm)
+    if history is not None:
+        history_path = '{} history.csv'.format(path)
+        header = ['train_loss', 'train_acc', 'val_loss', 'val_acc']
+        values = np.array(list(history.history.values())).T
+        np.savetxt(history_path, values, "%f,%f,%f,%f", header=','.join(header), comments="")
     
 # Motion capture dataset utilities
     

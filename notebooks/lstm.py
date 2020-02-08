@@ -28,6 +28,8 @@ class LSTMClassifier:
         self.model.add(LSTM(100, input_shape=(T, D)))
         self.model.add(Dropout(0.5))
         self.model.add(Dense(100, activation='relu'))
+        # self.model.add(Dropout(0.5)) # Added
+        # self.model.add(Dense(50, activation='relu')) # Added
         self.model.add(Dense(len(self.classes), activation='softmax'))
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
         
@@ -69,3 +71,6 @@ class LSTMClassifier:
     def _one_hot(self, y):
         # Generate one-hot encodings
         return np.array([to_categorical(self.classes.index(label), num_classes=len(self.classes)) for label in y])
+    
+    def summary(self):
+        self.model.summary()
