@@ -1,9 +1,7 @@
 import numpy as np
 from sequentia.preprocessing.transforms import Equalize
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import LSTM
+from tensorflow.keras.layers import Dense, Dropout, LSTM, Bidirectional
 from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import confusion_matrix
 
@@ -25,11 +23,9 @@ class LSTMClassifier:
         
         # Construct the model
         self.model = Sequential()
-        self.model.add(LSTM(100, input_shape=(T, D)))
-        self.model.add(Dropout(0.5))
-        self.model.add(Dense(100, activation='relu'))
-        # self.model.add(Dropout(0.5)) # Added
-        # self.model.add(Dense(50, activation='relu')) # Added
+        self.model.add(Bidirectional(LSTM(100, return_sequences=True, recurrent_dropout=0.5), input_shape=(T, D)))
+        self.model.add(Bidirectional(LSTM(100, recurrent_dropout=0.5)))
+#         self.model.add(LSTM(100, input_shape=(T, D)))
         self.model.add(Dense(len(self.classes), activation='softmax'))
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
         
