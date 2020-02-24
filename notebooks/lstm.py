@@ -22,11 +22,13 @@ class LSTMClassifier:
         N, T, D = X.shape
         
         # Construct the model
-        self.model = Sequential()
-        self.model.add(Bidirectional(LSTM(100, return_sequences=True, recurrent_dropout=0.5), input_shape=(T, D)))
-        self.model.add(Bidirectional(LSTM(100, recurrent_dropout=0.5)))
-#         self.model.add(LSTM(100, input_shape=(T, D)))
-        self.model.add(Dense(len(self.classes), activation='softmax'))
+        self.model = Sequential([
+            Bidirectional(LSTM(100, return_sequences=True, recurrent_dropout=0.5), input_shape=(T, D)),
+            Bidirectional(LSTM(100, recurrent_dropout=0.5)),
+            Dense(100, activation='relu'), # Test
+            Dropout(0.5), # Test
+            Dense(len(self.classes), activation='softmax')
+        ])
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
         
         # Fit the model
