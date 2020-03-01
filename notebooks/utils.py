@@ -13,22 +13,28 @@ def savefig(save):
     if save is not None:
         plt.savefig(os.path.join('Plots', save))
 
-def data_split(X, y, random_state=None, stratify=False):
-    """Generate a 65-20-10 training, validation and test dataset split"""
+def data_split(X, y, splits, random_state=None, stratify=False):
+    """Generate a training, validation and test dataset split"""
     X_train, X_val, X_test, y_train, y_val, y_test = [], [], [], [], [], []
     
+    splits = [s / 100. for s in splits]
+    assert sum(splits) == 1.
+    
+    rest_size = 1. - splits[0]
+    test_size = splits[2] / rest_size
+    
     if stratify:
-        outer_splitter = StratifiedShuffleSplit(n_splits=1, test_size=0.35, random_state=random_state)
+        outer_splitter = StratifiedShuffleSplit(n_splits=1, test_size=rest_size, random_state=random_state)
         for train_idx, rest_idx in outer_splitter.split(X, y):
             X_train, X_rest = [X[i] for i in train_idx], [X[i] for i in rest_idx]
             y_train, y_rest = [y[i] for i in train_idx], [y[i] for i in rest_idx]
-            inner_splitter = StratifiedShuffleSplit(n_splits=1, test_size=0.43, random_state=random_state)
+            inner_splitter = StratifiedShuffleSplit(n_splits=1, test_size=test_size, random_state=random_state)
             for val_idx, test_idx in inner_splitter.split(X_rest, y_rest):
                 X_val, X_test = [X_rest[i] for i in val_idx], [X_rest[i] for i in test_idx]
                 y_val, y_test = [y_rest[i] for i in val_idx], [y_rest[i] for i in test_idx]
     else:
-        X_train, X_rest, y_train, y_rest = train_test_split(X, y, test_size=0.35, shuffle=True, random_state=random_state)
-        X_val, X_test, y_val, y_test = train_test_split(X_rest, y_rest, test_size=0.43, shuffle=True, random_state=random_state)
+        X_train, X_rest, y_train, y_rest = train_test_split(X, y, test_size=rest_size, shuffle=True, random_state=random_state)
+        X_val, X_test, y_val, y_test = train_test_split(X_rest, y_rest, test_size=test_size, shuffle=True, random_state=random_state)
         
     # Display the split sizes
     print('Training set size: {}'.format(len(y_train)))
