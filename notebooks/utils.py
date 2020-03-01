@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sequentia.preprocessing import Transform, Downsample
 from tqdm.auto import tqdm
 
-__all__ = ['data_split', 'BinDownsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'write_knn_results', 'write_hmm_results', 'write_lstm_results', 'MoCapLoader']
+__all__ = ['data_split', 'BinDownsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'write_knn_results', 'write_hmm_results', 'write_network_results', 'MoCapLoader']
 
 # ggplot style
 plt.style.use('ggplot')
@@ -105,12 +105,12 @@ def show_durations(X, bins=None, title=None, figsize=(8, 6), save=None):
     savefig(save)
     plt.show()
     
-def show_accuracy_history(history):
-    """Display accuracy history for LSTM training"""
+def show_accuracy_history(network, history):
+    """Display accuracy history for NN training"""
     hist = history.history
     keys = hist.keys()
     plt.figure(figsize=(8, 6))
-    plt.title('LSTM accuracy history during training')
+    plt.title('{} accuracy history during training'.format(network))
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     if 'accuracy' in keys:
@@ -120,12 +120,12 @@ def show_accuracy_history(history):
     plt.legend()
     plt.show()
     
-def show_loss_history(history):
-    """Display cross entropy loss history for LSTM training"""
+def show_loss_history(network, history):
+    """Display cross entropy loss history for NN training"""
     hist = history.history
     keys = hist.keys()
     plt.figure(figsize=(8, 6))
-    plt.title('LSTM loss history during training')
+    plt.title('{} loss history during training'.format(network))
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     if 'loss' in keys:
@@ -155,11 +155,11 @@ def write_hmm_results(results, dataset, name, split, number=None, save_cm=False)
     if save_cm:
         np.save(path, cm)
         
-def write_lstm_results(results, dataset, name, split, history=None, number=None, save_cm=False):
-    path = os.path.join('Experiments', dataset, 'lstm', '{} {}'.format(name, split))
+def write_network_results(network, results, dataset, name, split, history=None, number=None, save_cm=False):
+    path = os.path.join('Experiments', dataset, network, '{} {}'.format(name, split))
     if number is not None:
         path = path + ' ' + str(number)
-    acc, cm = results['lstm'][split]
+    acc, cm = results[network][split]
     with open(path, 'w') as file:
         file.write(str(acc))
     if save_cm:
