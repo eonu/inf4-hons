@@ -59,6 +59,14 @@ class BinDownsample(Transform):
             factor = int((T - T % -self.bin_size) / self.bin_size) - 1
             return x if factor == 0 else Downsample(factor=factor, method=self.method).transform(x)
         return self._apply(bin_downsample, X, verbose)
+    
+def calculate_stats(cm):
+    # Calculate precision and recall
+    precision = np.mean(np.diag(cm) / np.sum(cm, axis=0))
+    recall = np.mean(np.diag(cm) / np.sum(cm, axis=1))
+    # Calculate F1 score
+    f1 = 2.0 * precision * recall / (precision + recall)
+    return precision, recall, f1
 
 def show_results(acc, cm, dataset, labels):
     """Display accuracy and confusion matrix"""
@@ -72,6 +80,10 @@ def show_results(acc, cm, dataset, labels):
     b, t = plt.ylim()
     plt.ylim(b + 0.5, t - 0.5)
     plt.show()
+    precision, recall, f1 = calculcate_stats(cm)
+    print('Precision: {:.2f}%'.format(precision * 100))
+    print('Recall: {:.2f}%'.format(recall * 100))
+    print('F1 score: {:.2f}%'.format(f1 * 100))
     print('Accuracy: {:.2f}%'.format(acc * 100))
     
 def show_class_counts(y, classes, xtick_rotation=0, title=None, figsize=(8, 6), save=None):
@@ -135,32 +147,52 @@ def show_loss_history(network, history):
     plt.legend()
     plt.show()
     
-def write_knn_results(results, dataset, name, split, number=None, save_cm=False):
-    path = os.path.join('Experiments', dataset, 'knn', name + ' ' + split)
+def write_knn_results(results, running_stats, name, split, number=None, save_cm=False):
+    path = os.path.join('Experiments', 'knn', name + ' ' + split)
     if number is not None:
         path = path + ' ' + str(number)
     acc, cm = results['knn'][split]
+    p, r, f1 = calculate_stats(cm)
     with open(path, 'w') as file:
-        file.write(str(acc))
+        file.write("precision: {}\n".format(p))
+        file.write("recall: {}\n".format(r))
+        file.write("f1: {}\n".format(f1))
+        file.write("accuracy: {}\n".format(acc))
+        file.write("memory_fit: {}\n".format(running_stats['fit']['memory']))
+        file.write("time_fit: {}\n".format(running_stats['fit']['time']))
+        file.write("memory_predict: {}\n".format(running_stats['predict']['memory']))
+        file.write("time_predict: {}".format(running_stats['predict']['time']))
     if save_cm:
         np.save(path, cm)
         
-def write_hmm_results(results, dataset, name, split, number=None, save_cm=False):
-    path = os.path.join('Experiments', dataset, 'hmm', '{} {}'.format(name, split))
+def write_hmm_results(results, running_stats, name, split, number=None, save_cm=False):
+    path = os.path.join('Experiments', 'hmm', '{} {}'.format(name, split))
     if number is not None:
         path = path + ' ' + str(number)
     acc, cm = results['hmm'][split]
+    p, r, f1 = calculate_stats(cm)
     with open(path, 'w') as file:
-        file.write(str(acc))
+        file.write("precision: {}\n".format(p))
+        file.write("recall: {}\n".format(r))
+        file.write("f1: {}\n".format(f1))
+        file.write("accuracy: {}\n".format(acc))
+        file.write("memory_fit: {}\n".format(running_stats['fit']['memory']))
+        file.write("time_fit: {}\n".format(running_stats['fit']['time']))
+        file.write("memory_predict: {}\n".format(running_stats['predict']['memory']))
+        file.write("time_predict: {}".format(running_stats['predict']['time']))
     if save_cm:
         np.save(path, cm)
         
-def write_network_results(network, results, dataset, name, split, history=None, number=None, save_cm=False):
-    path = os.path.join('Experiments', dataset, network, '{} {}'.format(name, split))
+def write_network_results(network, results, name, split, history=None, number=None, save_cm=False):
+    path = os.path.join('Experiments', network, '{} {}'.format(name, split))
     if number is not None:
         path = path + ' ' + str(number)
     acc, cm = results[network][split]
+    p, r, f1 = calculate_stats(cm)
     with open(path, 'w') as file:
+        file.write(str(p) + "\n")
+        file.write(str(r) + "\n")
+        file.write(str(f1) + "\n")
         file.write(str(acc))
     if save_cm:
         np.save(path, cm)
