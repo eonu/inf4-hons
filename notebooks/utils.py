@@ -183,17 +183,21 @@ def write_hmm_results(results, running_stats, name, split, number=None, save_cm=
     if save_cm:
         np.save(path, cm)
         
-def write_network_results(network, results, name, split, history=None, number=None, save_cm=False):
+def write_network_results(network, results, running_stats, name, split, history=None, number=None, save_cm=False):
     path = os.path.join('Experiments', network, '{} {}'.format(name, split))
     if number is not None:
         path = path + ' ' + str(number)
     acc, cm = results[network][split]
     p, r, f1 = calculate_stats(cm)
     with open(path, 'w') as file:
-        file.write(str(p) + "\n")
-        file.write(str(r) + "\n")
-        file.write(str(f1) + "\n")
-        file.write(str(acc))
+        file.write("precision: {}\n".format(p))
+        file.write("recall: {}\n".format(r))
+        file.write("f1: {}\n".format(f1))
+        file.write("accuracy: {}\n".format(acc))
+        file.write("memory_fit: {}\n".format(running_stats['fit']['memory']))
+        file.write("time_fit: {}\n".format(running_stats['fit']['time']))
+        file.write("memory_predict: {}\n".format(running_stats['predict']['memory']))
+        file.write("time_predict: {}".format(running_stats['predict']['time']))
     if save_cm:
         np.save(path, cm)
     if history is not None:
