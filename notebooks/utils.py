@@ -183,13 +183,14 @@ def write_hmm_results(results, running_stats, name, split, number=None, save_cm=
     if save_cm:
         np.save(path, cm)
         
-def write_network_results(network, results, running_stats, name, split, history=None, number=None, save_cm=False):
+def write_network_results(network, results, history, running_stats, name, split, number=None, save_history=False, save_cm=False):
     path = os.path.join('Experiments', network, '{} {}'.format(name, split))
     if number is not None:
         path = path + ' ' + str(number)
     acc, cm = results[network][split]
     p, r, f1 = calculate_stats(cm)
     with open(path, 'w') as file:
+        file.write("epochs: {}\n".format(len(history.history['loss'])))
         file.write("precision: {}\n".format(p))
         file.write("recall: {}\n".format(r))
         file.write("f1: {}\n".format(f1))
@@ -200,7 +201,7 @@ def write_network_results(network, results, running_stats, name, split, history=
         file.write("time_predict: {}".format(running_stats['predict']['time']))
     if save_cm:
         np.save(path, cm)
-    if history is not None:
+    if save_history:
         history_path = '{} history.csv'.format(path)
         header = ['train_loss', 'train_acc', 'val_loss', 'val_acc']
         values = np.array(list(history.history.values())).T

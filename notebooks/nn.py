@@ -2,6 +2,7 @@ import numpy as np
 from sequentia.preprocessing.transforms import Equalize
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.metrics import confusion_matrix
 
 class NNClassifier:
@@ -12,30 +13,37 @@ class NNClassifier:
         self.optimizer = optimizer
         self.equalizer = Equalize()
         
-    def fit(self, architecture, X, y, validation_data=None, verbose=True, return_history=False):
+    def fit(self, architecture, X, y, validation_data, verbose=2, return_history=False, 
+            early_stop=True, patience=None, checkpoint=False, checkpoint_path=None):
         X, y = np.array(self.equalizer.fit_transform(X)), self._one_hot(y)
         
         self.model = Sequential(architecture)
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
         
-        if validation_data is None:
-            history = self.model.fit(X, y, epochs=self.epochs, batch_size=self.batch_size, verbose=verbose)
-        else:
-            X_val, y_val = validation_data
-            X_val, y_val = np.array(self.equalizer.transform(X_val)), self._one_hot(y_val)
-            history = self.model.fit(X, y, validation_data=(X_val, y_val), 
-                epochs=self.epochs, batch_size=self.batch_size, verbose=verbose)
+        X_val, y_val = validation_data
+        X_val, y_val = np.array(self.equalizer.transform(X_val)), self._one_hot(y_val)
+        
+        callbacks = []
+        if early_stop:
+            assert patience is not None
+            es = EarlyStopping(monitor='val_accuracy', mode='max', verbose=(verbose > 1), patience=patience)
+            callbacks.append(es)
+        if checkpoint:
+            assert checkpoint_path is not None
+            mc = ModelCheckpoint(checkpoint_path, monitor='val_accuracy', mode='max', verbose=(verbose > 1), save_best_only=True)
+            callbacks.append(mc)
+            
+        history = self.model.fit(X, y, validation_data=(X_val, y_val), 
+            epochs=self.epochs, batch_size=self.batch_size, verbose=(verbose > 0), callbacks=callbacks)
             
         if return_history:
             return history
         
     def predict(self, X, return_scores=False):
         single = isinstance(X, np.ndarray)
+        transformed = self.equalizer.transform(X)
         
-        if single:
-            X = np.expand_dims(self.equalizer.transform(X), axis=0)
-        else:
-            X = np.array(self.equalizer.transform(X))
+        X = np.expand_dims(transformed, axis=0) if single else np.array(transformed)
             
         scores = self.model.predict(X)
         preds = [self.classes[i] for i in np.argmax(scores, axis=1)]
