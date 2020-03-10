@@ -1,0 +1,9 @@
+epochs: 132
+precision: nan
+recall: 0.30382494698284174
+f1: nan
+accuracy: 0.3552123552123552
+memory_fit: 3815.18359375
+time_fit: 613.4552280902863
+memory_predict: 3544.20703125
+time_predict: 1.6228489875793457
