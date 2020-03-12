@@ -61,12 +61,14 @@ class BinDownsample(Transform):
         return self._apply(bin_downsample, X, verbose)
     
 def calculate_stats(cm):
-    # Calculate precision and recall
-    precision = np.mean(np.diag(cm) / np.sum(cm, axis=0))
-    recall = np.mean(np.diag(cm) / np.sum(cm, axis=1))
-    # Calculate F1 score
-    f1 = 2.0 * precision * recall / (precision + recall)
-    return precision, recall, f1
+    # Calculate per-class precision and recall
+    diag = np.diag(cm)
+    precisions = diag / np.sum(cm, axis=0)
+    recalls = diag / np.sum(cm, axis=1)
+    # Calculate per-class F1 scores
+    f1s = 2. * precisions * recalls / (precisions + recalls)
+    # Return macro precision, recall and F1 score
+    return np.mean(precisions), np.mean(recalls), np.mean(f1s)
 
 def show_results(acc, cm, dataset, labels):
     """Display accuracy and confusion matrix"""
