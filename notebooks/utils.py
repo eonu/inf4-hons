@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sequentia.preprocessing import Transform, Downsample
 from tqdm.auto import tqdm
 
-__all__ = ['data_split', 'BinDownsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'write_knn_results', 'write_hmm_results', 'write_network_results', 'MoCapLoader']
+__all__ = ['data_split', 'BinDownsample', 'show_results', 'show_class_counts', 'show_durations', 'show_accuracy_history', 'show_loss_history', 'write_knn_results', 'write_hmm_results', 'write_network_results', 'write_filter_results', 'MoCapLoader']
 
 # ggplot style
 plt.style.use('ggplot')
@@ -208,7 +208,18 @@ def write_network_results(network, results, history, running_stats, name, split,
         header = ['train_loss', 'train_acc', 'val_loss', 'val_acc']
         values = np.array(list(history.history.values())).T
         np.savetxt(history_path, values, "%f,%f,%f,%f", header=','.join(header), comments="")
-    
+        
+def write_filter_results(running_stats, name, split, number):
+    for model in ('hmm', 'ffnn'):
+        path = os.path.join('Experiments', 'preprocess', 'filter', model, '{} {}'.format(name, split))
+        if number is not None:
+            path = path + ' ' + str(number)
+        stats = running_stats[model]
+        with open(path, 'w') as file:
+            file.write("accuracy: {}\n".format(stats['acc']))
+            file.write("time_fit: {}\n".format(stats['time_fit']))
+            file.write("time_predict: {}".format(stats['time_predict']))
+
 # Motion capture dataset utilities
     
 class MoCapRecording:

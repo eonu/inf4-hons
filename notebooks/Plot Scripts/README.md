@@ -1,0 +1,1 @@
+These plot scripts must first be copied into the parent `notebooks` directory before they can be executed!
