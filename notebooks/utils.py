@@ -82,7 +82,7 @@ def show_results(acc, cm, dataset, labels):
     b, t = plt.ylim()
     plt.ylim(b + 0.5, t - 0.5)
     plt.show()
-    precision, recall, f1 = calculcate_stats(cm)
+    precision, recall, f1 = calculate_stats(cm)
     print('Precision: {:.2f}%'.format(precision * 100))
     print('Recall: {:.2f}%'.format(recall * 100))
     print('F1 score: {:.2f}%'.format(f1 * 100))
