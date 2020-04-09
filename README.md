@@ -6,7 +6,7 @@
 <summary>
     <b>Click here to view the abstract.</b>
 </summary>
-<!--p-->
+<p>
 
 > Head gestures are a simple, yet expressive form of human-to-human interaction, used as a medium for conveying ideas and emotions. Despite their simplicity as a form of communication, the accurate modelling and recognition of human head gestures has posed many challenges and provided many opportunities for machine learning research. The frequent use of motion-tracking devices, video, virtual-reality headsets and motion capture systems in the modern age of technology further motivates the need for effective head gesture recognition systems.
 >
@@ -14,7 +14,7 @@
 >
 > The most effective method of modelling gestures was a bidirectional multi-layer LSTM, which yielded an accuracy of **53.75±1%** and an F1 score of **52.30±1%**. This result is a vast improvement of **+15.1%** F1 score over previous works on the same dataset.
 
-<!--/p-->
+</p>
 </details>
 
 ## Installation
