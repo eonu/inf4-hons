@@ -1,10 +1,10 @@
 # Informatics Undergraduate Honours Project
 
 **Title**: _Automatic detection and classification of human head gestures_<br/>
-**Supervisor**: [Dr. Hiroshi Shimodaira](http://homepages.inf.ed.ac.uk/hshimoda/)<br/>
-**Abstract**: <details>
+**Supervisor**: [Dr. Hiroshi Shimodaira](http://homepages.inf.ed.ac.uk/hshimoda/)
+
 <summary>
-    <b>Click here to see expand.</b>
+    <b>Click here to view the abstract.</b>
 </summary>
 <!--p-->
 
