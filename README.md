@@ -18,7 +18,7 @@
 </p>
 </details>
 
-## Installation
+## Installation and reproducing results
 
 This project requires the dependencies specified in `requirements.txt` (in addition to Python 3.7.4) in order for the notebooks to work.
 
@@ -31,3 +31,41 @@ pip install -r requirements.txt
 ```
 
 **Note**: You will not be able to re-run any of the notebooks as they rely on the proprietary `MoCap` dataset which I do not have permission to share.
+
+If you do have access to these files, the following files in the `notebooks/` directory contain the implementation necessary for the reproduction of results:
+
+- `MoCap Recognition.ipynb`: Contains the code for training and evaluating the performance of the final classifiers (on the validation set).
+- `utils.py`: Contains utility functions and classes for performance evaluation, storing results, loading gesture parameters and annotations, and visualizations.
+- `nn.py`: Contains the implementation of a class used to create the Feed-Forward and Long Short-Term Memory neural networks.
+
+Other sub-directories of importance within the `notebooks/` directory include:
+
+- `Experiments/`: Contains results of the repeated experiments described in the dissertation.
+- `Plot Scripts/`: Contains scripts for producing the plots used in the dissertation.
+- `Plots/`: Contains the plots used in the dissertation.
+
+## Contributions
+
+- `notebooks/`: Main code for this dissertation.
+- `sequentia/`: Version `0.7.0a1` copy of the [Sequentia](https://github.com/eonu/sequentia) library that was developed for this project.
+- `params/organize.rb`: Code for sorting the gesture signal files into separate sub-directories for each speaker and file format.
+- `params/rename.rb`: Code for renaming gesture signal files.
+- `params/rov2csv.rb`: Code for converting the ROV gesture parameter data into CSV format.
+- `params/Rakefile`: Commands for using `rov2csv.rb` to generate CSV files containing ROV data.
+- `annotations/Rakefile`: Commands for using the `eaf2csv.py` script created by Roxana Novac, which converts gesture annotations from the XML-like EAF format used by [ELAN](https://archive.mpi.nl/tla/elan), to CSV which is more usable.
+
+All other files except `README.md`, `requirements.txt` and Git-related files, were created by either Dr. Shimodaira or ex-MSc students.
+
+---
+
+<p align="center">
+    This work was submitted in partial fulfillment of the requirements for the <a href="https://www.ed.ac.uk/studying/undergraduate/degrees/index.php?action=view&code=G400">BSc Computer Science</a> degree at the <a href="https://www.ed.ac.uk/informatics">School of Informatics, University of Edinburgh</a>.
+</p>
+
+<p align="center">
+    All aforementioned contribution items are protected under the <a href="https://creativecommons.org/licenses/by/4.0/">Creative-Commons Attribution 4.0 International</a> license unless stated otherwise.
+</p>
+
+<p align="center">
+    <em>© Edwin Onuonga, 2020</em>
+</p>
