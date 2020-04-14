@@ -27,6 +27,7 @@ It is suggested that you create a separate environment to contain the packages f
 ```console
 conda create -n inf4-hons python=3.7.4
 conda activate inf4-hons
+conda install ipykernel
 pip install -r requirements.txt
 ```
 
