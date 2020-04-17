@@ -319,6 +319,6 @@ class MoCapLoader:
             gesture_df = param_df[param_df['recording'] == recording].iloc[start:end]
             if not gesture_df.empty:
                 X.append(gesture_df[fields].to_numpy())
-                y.append(gesture)
+                y.append(gesture) # y.append((gesture, recording.split('_')[0].title())) for gesture counts plot
                 
         return X, y
